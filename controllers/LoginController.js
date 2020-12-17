@@ -24,13 +24,13 @@ exports.login = async(req, res, next)=>{
                     expiresIn: 86400 //el token expira en 24 horas
                 });
                 res.status(200).send({
-                    accessToken: token,
+                    tokenReturn: token,
                     auth: true
                 })                
             }else{
                 res.status(401).send({
                     auth: false,
-                    accessToken :null,
+                    tokenReturn :null,
                     reason: "Invalid Password"
                 })
             }
