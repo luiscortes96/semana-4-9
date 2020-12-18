@@ -1,4 +1,5 @@
 const models = require('../models');
+const tokenServices = require('../services/token');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -6,23 +7,13 @@ const bcrypt = require('bcryptjs');
 
 
 exports.login = async(req, res, next)=>{
-
-    try{ 
-        
-        const user = await models.user.findOne({where: {email: req.body.email}});
+    try{
+        console.log('prueba')
+        const user = await  await models.Usuario.findOne({where: {email: req.body.email}});       
         if (user) {
-            
             const passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
-
             if (passwordIsValid) {
-                
-                const token= jwt.sign({
-                    id: user.id,
-                    name: user.name,
-                    email: user.email
-                }, 'config.secret' ,{
-                    expiresIn: 86400 //el token expira en 24 horas
-                });
+                const token= await tokenServices.encode(user);
                 res.status(200).send({
                     tokenReturn: token,
                     auth: true
@@ -39,10 +30,10 @@ exports.login = async(req, res, next)=>{
                 'User Not Found.'
             )
         }
-     } catch(err){
+     } catch(error){
        res.status(500).json({
-             err: 'Error en la conexion con el servidor =('
+             error: 'Error en la conexion con el servidor =('
          })
-         next(err);
+         next(error);
      }
 }

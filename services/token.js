@@ -1,20 +1,57 @@
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const models = require('../models');
 
+const checkToken = async(token)=>{
+    let localID = null;
+    try {
+        const {id} = await token.decode(token);
+        localID = id;
+    } catch (error) {
+        return false;
+    }
+    const user = await models.Usuario.findOne({where:{
+        id: localID,
+        estado: 1
+    }});
+    if (user) {
+        const token = encode(user);
+        return token;
+    } else {
+        return false
+    }
+}
 
 module.exports = {
 
     //generar el token
-    encode: async(id, rol) => {
-
+    encode: async(user) => {
+        const token= jwt.sign({
+            id: user.id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol
+        }, 'config.secret' ,{
+            expiresIn: 86400 //el token expira en 24 horas
+        }
+        );
+        return token;
     },
     //permite decodificar el token
     decode: async(token) => {
         try {
-
-        } catch (e) {
-
+            const {id} = await jwt.verify(token, 'config.secret');
+            const user = await models.Usuario.findOne({ where :{
+                id: id,
+                estado : 1 
+            }});
+            if (user) {
+                return user
+            }else{
+                return false;
+            }
+        } catch (error) {
+            const newToken = await checkToken(token);
+            return newToken;
         }
-
     }
 }
